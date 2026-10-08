@@ -42,3 +42,21 @@ crash.log
 
 # Generated vector indexes
 data/indexes/
+data/indexes-test-backup/
+# AgentCore generated files and logs
+agentcore/.cli/
+agentcore/cdk/node_modules/
+agentcore/cdk/cdk.out/
+agentcore/cdk/dist/
+agentcore/cdk/.cdk.staging/
+
+# Local deployment artifacts
+deployment/**/__pycache__/
+
+# AgentCore generated deployment artifacts
+agentcore/enterprise_rag_agent.zip
+agentcore/enterprise_rag_agent/staging/
+agentcore/.llm-context/
+
+# Personal AWS deployment targets
+agentcore/aws-targets.json
