@@ -1,0 +1,21 @@
+
+# AWS and AI
+boto3
+strands-agents
+langchain
+langchain-community
+langchain-aws
+langgraph
+
+# RAG
+pypdf
+
+# Configuration
+python-dotenv
+pydantic
+pydantic-settings
+
+# Testing and code quality
+pytest
+pytest-mock
+ruff
