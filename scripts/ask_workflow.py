@@ -3,6 +3,8 @@ import hashlib
 import os
 from pathlib import Path
 
+from botocore.exceptions import ClientError
+
 from enterprise_rag_agent.agents.rag_agent import create_rag_agent
 from enterprise_rag_agent.graph.workflow import build_workflow
 from enterprise_rag_agent.rag.embeddings import BedrockEmbeddingService
@@ -10,6 +12,7 @@ from enterprise_rag_agent.rag.llm import BedrockLLMService
 from enterprise_rag_agent.rag.pipeline import process_pdf
 from enterprise_rag_agent.rag.retriever import SemanticRetriever
 from enterprise_rag_agent.rag.vector_store import VectorStore
+from enterprise_rag_agent.storage.s3_index import S3IndexStorage
 
 
 def main():
@@ -40,25 +43,63 @@ def main():
 
     index_dir = Path("data/indexes") / cache_key
 
-    if (
-        (index_dir / "index.faiss").exists()
-        and (index_dir / "metadata.json").exists()
-    ):
-        print("Loading existing FAISS index...")
+    
+    bucket = os.getenv("RAG_S3_BUCKET")
+
+    if not bucket:
+        raise ValueError("RAG_S3_BUCKET environment variable is required")
+
+    s3_storage = S3IndexStorage(bucket=bucket)
+
+    index_file = index_dir / "index.faiss"
+    metadata_file = index_dir / "metadata.json"
+
+    if index_file.is_file() and metadata_file.is_file():
+        print("Loading existing local FAISS index...")
         store.load(str(index_dir))
+
     else:
-        print("Building FAISS index...")
+        # Check whether the index already exists in S3.
+        s3_key = f"{s3_storage.prefix}/{cache_key}/index.faiss"
 
-        chunks = process_pdf(str(pdf_path))
+        try:
+            s3_storage.s3.head_object(
+                Bucket=bucket,
+                Key=s3_key,
+            )
+            s3_exists = True
 
-        if not chunks:
-            raise ValueError("No extractable text found in PDF")
+        except ClientError as error:
+            error_code = error.response["Error"]["Code"]
 
-        print(f"Indexing {len(chunks)} chunks...")
-        retriever.index_chunks(chunks)
+            if error_code in ("404", "NoSuchKey", "NotFound"):
+                s3_exists = False
+            else:
+                raise
 
-        store.save(str(index_dir))
-        print("FAISS index saved.")
+        if s3_exists:
+            print("Downloading existing FAISS index from S3...")
+            s3_storage.download(str(index_dir), cache_key)
+            store.load(str(index_dir))
+            print("FAISS index loaded from S3.")
+
+        else:
+            print("No existing index found. Building FAISS index...")
+
+            chunks = process_pdf(str(pdf_path))
+
+            if not chunks:
+                raise ValueError("No extractable text found in PDF")
+
+            print(f"Indexing {len(chunks)} chunks...")
+            retriever.index_chunks(chunks)
+
+            store.save(str(index_dir))
+            print("FAISS index saved locally.")
+
+            s3_storage.upload(str(index_dir), cache_key)
+            print("FAISS index uploaded to S3.")
+
 
 
     agent = create_rag_agent(retriever)
