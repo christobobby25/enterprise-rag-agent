@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 import faiss
 import numpy as np
 
@@ -81,3 +84,51 @@ class VectorStore:
             })
 
         return results
+    
+    def save(self, directory: str) -> None:
+        """Persist the FAISS index and document metadata."""
+        path = Path(directory)
+        path.mkdir(parents=True, exist_ok=True)
+
+        faiss.write_index(
+            self.index,
+            str(path / "index.faiss"),
+        )
+
+        metadata = {
+            "dimension": self.dimension,
+            "documents": self.documents,
+        }
+
+        with (path / "metadata.json").open(
+            "w",
+            encoding="utf-8",
+        ) as file:
+            json.dump(metadata, file, indent=2)
+
+    def load(self, directory: str) -> None:
+        """Restore a previously saved FAISS index."""
+        path = Path(directory)
+
+        loaded_index = faiss.read_index(
+            str(path / "index.faiss"),
+        )
+
+        with (path / "metadata.json").open(
+            encoding="utf-8",
+        ) as file:
+            metadata = json.load(file)
+
+        if loaded_index.d != self.dimension:
+            raise ValueError("Saved index dimension mismatch")
+
+        if metadata["dimension"] != self.dimension:
+            raise ValueError("Saved metadata dimension mismatch")
+
+        if loaded_index.ntotal != len(metadata["documents"]):
+            raise ValueError("Index and document count mismatch")
+
+        self.index = loaded_index
+        self.documents = metadata["documents"]
+
+    

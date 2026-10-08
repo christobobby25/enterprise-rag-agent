@@ -1,5 +1,7 @@
 import argparse
+import hashlib
 import os
+from pathlib import Path
 
 from enterprise_rag_agent.agents.rag_agent import create_rag_agent
 from enterprise_rag_agent.graph.workflow import build_workflow
@@ -22,12 +24,42 @@ def main():
     store = VectorStore(dimension=1024)
     retriever = SemanticRetriever(embeddings, store)
 
-    chunks = process_pdf(args.pdf_path)
-    if not chunks:
-        raise ValueError("No extractable text found in PDF")
+    
+    pdf_path = Path(args.pdf_path)
 
-    print(f"Indexing {len(chunks)} chunks...")
-    retriever.index_chunks(chunks)
+    if not pdf_path.is_file():
+        raise FileNotFoundError(f"PDF not found: {pdf_path}")
+
+    # Hash the PDF content and embedding configuration.
+    pdf_hash = hashlib.sha256(pdf_path.read_bytes()).hexdigest()
+    embedding_model = "amazon.titan-embed-text-v2:0"
+    cache_key = hashlib.sha256(
+        f"{pdf_hash}:{embedding_model}:{store.dimension}:"
+        "chunk_size=1000:chunk_overlap=200".encode()
+    ).hexdigest()[:16]
+
+    index_dir = Path("data/indexes") / cache_key
+
+    if (
+        (index_dir / "index.faiss").exists()
+        and (index_dir / "metadata.json").exists()
+    ):
+        print("Loading existing FAISS index...")
+        store.load(str(index_dir))
+    else:
+        print("Building FAISS index...")
+
+        chunks = process_pdf(str(pdf_path))
+
+        if not chunks:
+            raise ValueError("No extractable text found in PDF")
+
+        print(f"Indexing {len(chunks)} chunks...")
+        retriever.index_chunks(chunks)
+
+        store.save(str(index_dir))
+        print("FAISS index saved.")
+
 
     agent = create_rag_agent(retriever)
     llm = BedrockLLMService(region=region)
