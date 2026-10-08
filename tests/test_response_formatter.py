@@ -7,8 +7,8 @@ from enterprise_rag_agent.agents.response_formatter import clean_agent_response
     ("raw", "expected"),
     [
         (
-            "<thinking>Searching documents.</thinking>"
-            "<response>The answer is AWS.</response>",
+            ("<thinking>Searching documents.</thinking>"
+             "<response>The answer is AWS.</response>"),
             "The answer is AWS.",
         ),
         (
@@ -20,8 +20,8 @@ from enterprise_rag_agent.agents.response_formatter import clean_agent_response
             "AWS provides cloud computing services.",
         ),
         (
-            "<THINKING>Internal reasoning</THINKING>"
-            "<RESPONSE>Final answer</RESPONSE>",
+            ("<THINKING>Internal reasoning</THINKING>"
+             "<RESPONSE>Final answer</RESPONSE>"),
             "Final answer",
         ),
     ],
