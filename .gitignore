@@ -39,3 +39,6 @@ data/sample/*
 *.tfvars
 *.tfplan
 crash.log
+
+# Generated vector indexes
+data/indexes/
