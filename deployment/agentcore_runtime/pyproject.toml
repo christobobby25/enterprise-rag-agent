@@ -1,0 +1,22 @@
+[project]
+name = "enterprise-rag-agent-runtime"
+version = "0.1.0"
+requires-python = ">=3.13,<3.14"
+dependencies = [
+    "boto3",
+    "strands-agents",
+    "langchain",
+    "langchain-community",
+    "langchain-aws",
+    "langgraph",
+    "botocore[crt]",
+    "bedrock-agentcore>=1.24.1,<2.0",
+    "pypdf",
+    "langchain-text-splitters",
+    "faiss-cpu==1.15.1",
+    "numpy",
+    "python-dotenv",
+    "pydantic",
+    "pydantic-settings",
+    "opentelemetry-instrumentation",
+]
