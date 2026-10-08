@@ -92,9 +92,9 @@ ANSWER:
             raise ValueError("Invalid groundedness score")
 
         if not isinstance(result.get("explanation"), str):
-            raise ValueError("Invalid explanation")
+            raise TypeError("Invalid explanation")
 
         if not isinstance(result.get("unsupported_claims"), list):
-            raise ValueError("Invalid unsupported claims")
+            raise TypeError("Invalid unsupported claims")
 
         return result
