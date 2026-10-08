@@ -1,0 +1,18 @@
+[
+  {
+    "question": "What is Amazon EC2?",
+    "expected_keywords": ["compute", "instances", "cloud"]
+  },
+  {
+    "question": "What is AWS Elastic Beanstalk?",
+    "expected_keywords": ["deploy", "applications"]
+  },
+  {
+    "question": "What is AWS Auto Scaling?",
+    "expected_keywords": ["capacity", "demand"]
+  },
+  {
+    "question": "What is Amazon EventBridge?",
+    "expected_keywords": ["events", "event-driven"]
+  }
+]
