@@ -61,3 +61,25 @@ class BedrockLLMService:
             for block in blocks
             if "text" in block
         )
+    
+    def generate_general(self, question: str) -> str:
+        """Answer a general question without RAG context."""
+        if not question.strip():
+            raise ValueError("Question cannot be empty")
+
+        response = self.client.converse(
+            modelId=self.model_id,
+            messages=[
+                {
+                    "role": "user",
+                    "content": [{"text": question}],
+                }
+            ],
+            inferenceConfig={
+                "maxTokens": 1024,
+                "temperature": 0.2,
+            },
+        )
+
+        return response["output"]["message"]["content"][0]["text"]
+
