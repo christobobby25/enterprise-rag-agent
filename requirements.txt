@@ -9,6 +9,9 @@ langgraph
 
 # RAG
 pypdf
+langchain-text-splitters
+faiss-cpu
+numpy
 
 # Configuration
 python-dotenv
