@@ -6,6 +6,7 @@ langchain
 langchain-community
 langchain-aws
 langgraph
+botocore[crt]
 
 # RAG
 pypdf
