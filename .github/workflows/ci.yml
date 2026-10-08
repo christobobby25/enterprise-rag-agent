@@ -16,10 +16,10 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.12
+      - name: Set up Python 3.13
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.13"
           cache: pip
 
       - name: Install dependencies
@@ -33,3 +33,28 @@ jobs:
 
       - name: Run unit tests
         run: python -m pytest -v
+
+  cdk-build:
+    name: AWS CDK Build
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: agentcore/cdk
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: agentcore/cdk/package-lock.json
+
+      - name: Install CDK dependencies
+        run: npm ci
+
+      - name: Compile TypeScript
+        run: npm run build
